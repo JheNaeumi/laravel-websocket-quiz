@@ -21,4 +21,8 @@ class AppServiceProvider extends ServiceProvider
     {
         //
     }
+    protected $middlewareAliases = [
+        // ... other middleware aliases
+        'inertia' => \App\Http\Middleware\HandleInertiaRequests::class,
+    ];
 }
