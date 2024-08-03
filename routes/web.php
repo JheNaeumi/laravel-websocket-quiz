@@ -4,6 +4,7 @@ use App\Http\Controllers\ProfileController;
 use Illuminate\Foundation\Application;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
+use App\Http\Controllers\QuizController;
 
 Route::get('/', function () {
     return Inertia::render('Welcome', [
@@ -12,6 +13,10 @@ Route::get('/', function () {
         'laravelVersion' => Application::VERSION,
         'phpVersion' => PHP_VERSION,
     ]);
+});
+Route::middleware(['auth'])->group(function () {
+    Route::get('/quiz', [QuizController::class, 'index']);
+    Route::post('/start-quiz', [QuizController::class, 'startQuiz']);
 });
 
 Route::get('/dashboard', function () {
