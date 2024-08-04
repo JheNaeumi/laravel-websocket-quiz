@@ -13,20 +13,17 @@ class QuizEvent implements ShouldBroadcast
     use Dispatchable, InteractsWithSockets, SerializesModels;
 
     public $question;
-    public $options;
+    public $lobbyId;
 
-    public function __construct($question, $options)
+    public function __construct($question, $lobbyId)
     {
         $this->question = $question;
-        $this->options = $options;
+        $this->lobbyId = $lobbyId;
     }
 
     public function broadcastOn()
     {
-        return new Channel('quiz');
+        return new Channel('lobby.' . $this->lobbyId);
     }
-    public function broadcastAs()
-    {
-        return 'QuizEvent';
-    }
+
 }
