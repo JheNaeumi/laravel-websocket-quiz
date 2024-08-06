@@ -21,9 +21,11 @@ class QuizEvent implements ShouldBroadcast
         $this->lobbyId = $lobbyId;
     }
 
-    public function broadcastOn()
+    public function broadcastOn():array
     {
-        return new Channel('lobby.' . $this->lobbyId);
+        return[
+             new Channel("quiz.{$this->lobbyId}"),
+        ];
     }
 
 }
