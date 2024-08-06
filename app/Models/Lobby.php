@@ -20,4 +20,9 @@ class Lobby extends Model
     {
         return $this->belongsToMany(User::class, 'lobby_user')->withTimestamps();
     }
+
+    public function answers()
+    {
+        return $this->hasMany(Answer::class);
+    }
 }
