@@ -16,6 +16,7 @@ return new class extends Migration
             $table->string('name');
             $table->foreignId('host_id')->constrained('users');
             $table->boolean('is_active')->default(true);
+            $table->integer('current_question_index')->nullable();
             $table->timestamps();
         });
     }

@@ -15,6 +15,7 @@ return new class extends Migration
             $table->id();
             $table->foreignId('lobby_id')->constrained()->onDelete('cascade');
             $table->foreignId('user_id')->constrained()->onDelete('cascade');
+            $table->boolean('ready')->default(false);
             $table->timestamps();
 
             $table->unique(['lobby_id', 'user_id']);
