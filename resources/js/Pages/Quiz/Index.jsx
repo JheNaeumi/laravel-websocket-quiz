@@ -121,50 +121,48 @@ const QuizIndex = ({ lobby, isHost, questionCount }) => {
     </div>
   );
 
-  const renderQuizResults = () => (
-    <div className="bg-white shadow-md rounded-lg p-6">
-      <h2 className="text-2xl font-semibold mb-4">Quiz Results</h2>
-      {isHost ? (
-        quizResults.map((result, index) => (
-          <div key={index} className="mb-6">
-            <h3 className="text-xl font-semibold mb-2">{result.question}</h3>
-            <p className="mb-2">Correct Answer: {result.correct_answer}</p>
-            <Bar
-              data={{
-                labels: result.stats.map(stat => stat.answer),
-                datasets: [{
-                  label: '# of Answers',
-                  data: result.stats.map(stat => stat.count),
-                  backgroundColor: 'rgba(75, 192, 192, 0.6)',
-                }]
-              }}
-              options={{
-                scales: {
-                  y: {
-                    beginAtZero: true,
-                    ticks: {
-                      stepSize: 1
-                    }
-                  }
-                }
-              }}
-            />
-          </div>
-        ))
-      ) : (
-        <div>
-          <p>Your Score: {quizResults.filter(r => r.your_answer === r.correct_answer).length} / {quizResults.length}</p>
-          {quizResults.map((result, index) => (
-            <div key={index} className="mb-4">
-              <p>{result.question}</p>
-              <p>Your Answer: {result.your_answer}</p>
-              <p>Correct Answer: {result.correct_answer}</p>
+  const renderQuizResults = () => {
+    const maxCount = Math.max(...quizResults.flatMap(result => result.stats.map(stat => stat.count)));
+  
+    return (
+      <div className="bg-white shadow-md rounded-lg p-6">
+        <h2 className="text-2xl font-semibold mb-4">Quiz Results</h2>
+        {isHost ? (
+          quizResults.map((result, index) => (
+            <div key={index} className="mb-6">
+              <h3 className="text-xl font-semibold mb-2">{result.question}</h3>
+              <p className="mb-2">Correct Answer: {result.correct_answer}</p>
+              <div className="flex flex-col space-y-2">
+                {result.stats.map((stat, statIndex) => (
+                  <div key={statIndex} className="flex items-center">
+                    <div className="w-24 text-right mr-2">{stat.answer}:</div>
+                    <div className="flex-1 bg-gray-200 h-6 rounded-full">
+                      <div
+                        className="bg-blue-500 h-full rounded-full"
+                        style={{ width: `${(stat.count / maxCount) * 100}%` }}
+                      ></div>
+                    </div>
+                    <div className="ml-2">{stat.count}</div>
+                  </div>
+                ))}
+              </div>
             </div>
-          ))}
-        </div>
-      )}
-    </div>
-  );
+          ))
+        ) : (
+          <div>
+            <p>Your Score: {quizResults.filter(r => r.your_answer === r.correct_answer).length} / {quizResults.length}</p>
+            {quizResults.map((result, index) => (
+              <div key={index} className="mb-4">
+                <p>{result.question}</p>
+                <p>Your Answer: {result.your_answer}</p>
+                <p>Correct Answer: {result.correct_answer}</p>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+    );
+  };
 
   return (
     <div className="container mx-auto px-4 py-8">
