@@ -43,7 +43,7 @@ class QuizController extends Controller
 
         return response()->json(['message' => 'Quiz started']);
     }
-
+    //TODO: Fix Questions Repeating Not Ending the quiz
     public function nextQuestion(Request $request, Lobby $lobby)
     {
         if ($lobby->host_id !== auth()->id()) {
@@ -58,12 +58,12 @@ class QuizController extends Controller
             $lobby->save();
             $this->broadcastQuizEnd($lobby);
             return response()->json(['message' => 'Quiz ended']);
-        }
+        }else{
 
-        $lobby->save();
+            $lobby->save();
 
-        $this->broadcastQuestion($lobby, $questions[$lobby->current_question_index]);
-
+            $this->broadcastQuestion($lobby, $questions[$lobby->current_question_index]);
+        }   
         return response()->json(['message' => 'Next question broadcasted']);
     }
 
@@ -84,7 +84,7 @@ class QuizController extends Controller
         $results = $this->getQuizResults($lobby);
         broadcast(new QuizEvent(['type' => 'quiz_end', 'results' => $results], $lobby->id));
     }
-
+    //TODO: Fix Sumission
     public function submitAnswer(Request $request, Lobby $lobby)
     {
         $validated = $request->validate([
@@ -95,13 +95,13 @@ class QuizController extends Controller
         $user = auth()->user();
         
         // Check if the user has already answered this question
-        $existingAnswer = Answer::where('user_id', $user->id)
-            ->where('question_id', $validated['question_id'])
-            ->first();
+        // $existingAnswer = Answer::where('user_id', $user->id)
+        //     ->where('question_id', $validated['question_id'])
+        //     ->first();
 
-        if ($existingAnswer) {
-            return response()->json(['error' => 'Answer already submitted'], 400);
-        }
+        // if ($existingAnswer) {
+        //     return response()->json(['error' => 'Answer already submitted'], 400);
+        // }
 
         Answer::create([
             'user_id' => $user->id,
