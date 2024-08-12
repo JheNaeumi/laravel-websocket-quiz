@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 
-import { Bar } from 'react-chartjs-2';
 
 const QuizIndex = ({ lobby, isHost, questionCount }) => {
   const [currentQuestion, setCurrentQuestion] = useState(null);
@@ -16,7 +15,7 @@ const QuizIndex = ({ lobby, isHost, questionCount }) => {
   useEffect(() => {
       const channel = window.Echo.channel(`quiz.${lobby.id}`);
       channel.listen('QuizEvent', (e) => {
-        if (e.question.type === 'new_question') {
+        if (e.question.type === 'new_question' && !quizEnded) {
           setCurrentQuestion(e.question);
           setSelectedAnswer('');
           setAnswerSubmitted(false);
@@ -27,24 +26,27 @@ const QuizIndex = ({ lobby, isHost, questionCount }) => {
           setCurrentQuestion(null);
           setQuizResults(e.question.results);
         } else if (e.question.type === 'answer_stats') {
-          setAnswerStats(e.question.stats);
+          setAnswerStats(prevStats => ({...prevStats, ...e.question.stats}));
         }
         console.log(e)
       });
 
-    return () => {
-      Echo.leave(`quiz.${lobby.id}`);
-    };
+      return () => {
+        channel.stopListening('QuizEvent');
+        window.Echo.leave(`quiz.${lobby.id}`);
+      };
   }, []);
 
   useEffect(() => {
     if (currentQuestion && timeLeft > 0) {
-      const timer = setTimeout(() => setTimeLeft(timeLeft - 1), 1000);
+      const timer = setTimeout(() => setTimeLeft(prev => Math.max(prev - 1, 0)), 1000);
       return () => clearTimeout(timer);
     } else if (timeLeft === 0 && isHost) {
       nextQuestion();
     }
   }, [currentQuestion, timeLeft]);
+  
+  
 
   const startQuiz = async () => {
     try {
@@ -64,6 +66,7 @@ const QuizIndex = ({ lobby, isHost, questionCount }) => {
   };
 
   const submitAnswer = async () => {
+    if (answerSubmitted) return;
     try {
       await axios.post(route('quiz.answer', lobby.id), {
         question_id: currentQuestion.id,
@@ -71,10 +74,18 @@ const QuizIndex = ({ lobby, isHost, questionCount }) => {
       });
       setAnswerSubmitted(true);
     } catch (err) {
-      setError(err.response.data.error);
+      handleError(err);
     }
   };
-
+  
+  
+  const handleError = (error) => {
+    setError(error.response?.data?.error || 'An error occurred');
+    setTimeout(() => setError(null), 5000); // Clear error after 5 seconds
+  };
+  
+  // Use this in your catch blocks:
+ 
   const renderParticipantView = () => (
     <div className="bg-white shadow-md rounded-lg p-6">
       <h2 className="text-xl font-semibold mb-4">{currentQuestion.question}</h2>
@@ -201,22 +212,3 @@ const QuizIndex = ({ lobby, isHost, questionCount }) => {
 export default QuizIndex;
 
 
-// useEffect(() => {
-//   const channel = window.Echo.channel(`quiz.${lobby.id}`);
-//   channel.listen('QuizEvent', (e) => {
-//   if (e.question.type === 'new_question') {
-//     setCurrentQuestion(e.question);
-//     setResult(null);
-//     setSelectedAnswer('');
-//     setTimeLeft(30);
-//   } else if (e.type === 'quiz_end') {
-//     setQuizEnded(true);
-//     setCurrentQuestion(null);
-//   }
-//   console.log(e, currentQuestion)
-// });
-
-// return () => {
-// Echo.leave(`quiz.${lobby.id}`);
-// };
-// }, []);
