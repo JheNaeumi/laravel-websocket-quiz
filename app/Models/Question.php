@@ -9,15 +9,16 @@ class Question extends Model
 {
     use HasFactory;
 
-    protected $fillable = ['user_id', 'question', 'options', 'correct_answer'];
-
-    protected $casts = [
-        'options' => 'array',
+    protected $fillable = [
+        'lobby_id',
+        'text',
+        'answer',
+        'time_limit',
     ];
 
-    public function user()
+    public function lobby()
     {
-        return $this->belongsTo(User::class);
+        return $this->belongsTo(Lobby::class);
     }
 
     public function answers()

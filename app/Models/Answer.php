@@ -12,8 +12,7 @@ class Answer extends Model
     protected $fillable = [
         'user_id',
         'question_id',
-        'lobby_id',
-        'answer',
+        'text',
     ];
 
     public function user()
@@ -24,10 +23,5 @@ class Answer extends Model
     public function question()
     {
         return $this->belongsTo(Question::class);
-    }
-
-    public function lobby()
-    {
-        return $this->belongsTo(Lobby::class);
     }
 }
