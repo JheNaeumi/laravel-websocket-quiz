@@ -27,5 +27,9 @@ class QuizEvent implements ShouldBroadcast
              new Channel("quiz.{$this->lobbyId}"),
         ];
     }
+    public function broadcastAs()
+    {
+        return 'QuizEvent';
+    }
 
 }
