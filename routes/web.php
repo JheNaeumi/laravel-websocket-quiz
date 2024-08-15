@@ -1,12 +1,12 @@
 <?php
 
-use App\Http\Controllers\LobbyController;
+
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\QuizController;
+use App\Http\Controllers\ResultController;
 use Illuminate\Foundation\Application;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
-use App\Http\Controllers\QuizController;
-use App\Http\Controllers\QuestionController;
 
 Route::get('/', function () {
     return Inertia::render('Welcome', [
@@ -26,14 +26,13 @@ Route::middleware('auth')->group(function () {
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 
-    Route::resource('lobbies', LobbyController::class);
-    Route::post('/lobbies/{lobby}/ready', [LobbyController::class, 'setReady'])->name('lobbies.ready');
-
-    Route::resource('questions', QuestionController::class);
-    Route::post('/lobbies/{lobby}/quiz/start', [QuizController::class, 'startQuiz'])->name('quiz.start');
-    Route::post('/lobbies/{lobby}/quiz/next', [QuizController::class, 'nextQuestion'])->name('quiz.next');
-    Route::post('/lobbies/{lobby}/quiz/submit-answer', [QuizController::class, 'submitAnswer'])->name('quiz.answer');
-    Route::get('/quiz/{lobby}', [QuizController::class, 'index'])->name('quiz.index');
+    Route::get('/quiz', [QuizController::class, 'index'])->name('quizzes.index');
+    Route::get('/quizzes/{quiz}', [QuizController::class, 'show'])->name('quizzes.show');
+    Route::post('/quizzes/{quiz}/start', [QuizController::class, 'start'])->name('quizzes.start');
+    Route::post('/quizzes/{quiz}/next-question/{questionNumber}', [QuizController::class, 'nextQuestion'])->name('quizzes.nextQuestion');
+    Route::post('/quizzes/{quiz}/end', [QuizController::class, 'end'])->name('quizzes.end');
+    Route::post('/results', [ResultController::class, 'store'])->name('results.store');
+    
     
 });
 
