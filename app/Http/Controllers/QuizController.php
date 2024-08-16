@@ -8,6 +8,7 @@ use Inertia\Inertia;
 use App\Events\QuizStarted;
 use App\Events\QuizChanged;
 use App\Events\QuizEnded;
+use App\Events\UserJoinedQuiz;
 
 class QuizController extends Controller
 {
@@ -41,5 +42,48 @@ class QuizController extends Controller
     {
         broadcast(new QuizEnded($quiz));
         return response()->json(['message' => 'Quiz ended']);
+    }
+
+    public function create()
+    {
+        return Inertia::render('Quizzes/Create');
+    }
+
+    public function store(Request $request)
+    {
+        $validated = $request->validate([
+            'title' => 'required|string|max:255',
+            'questions' => 'required|array|min:1',
+            'questions.*.question' => 'required|string',
+            'questions.*.options' => 'required|array|min:2',
+            'questions.*.correct_answer' => 'required|string',
+            'questions.*.time_limit' => 'required|integer|min:5|max:300',
+        ]);
+
+        $quiz = Quiz::create(['title' => $validated['title'], 'user_id' => $request->id ]);
+
+        foreach ($validated['questions'] as $questionData) {
+            $quiz->questions()->create([
+                'question' => $questionData['question'],
+                'options' => $questionData['options'],
+                'correct_answer' => $questionData['correct_answer'],
+                'time_limit' => $questionData['time_limit'],
+            ]);
+        }
+
+        return redirect()->route('quizzes.show', $quiz)->with('success', 'Quiz created successfully');
+    }
+
+    public function join(Quiz $quiz, Request $request)
+    {
+        $request->validate([
+            'participant_name' => 'required|string|max:255',
+        ]);
+
+        // You might want to store this information in the database
+        // For now, we'll just broadcast an event
+        broadcast(new UserJoinedQuiz($quiz, $request->participant_name))->toOthers();
+
+        return response()->json(['message' => 'Joined quiz successfully']);
     }
 }
