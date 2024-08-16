@@ -1,28 +1,26 @@
 <?php
+// app/Events/UserJoinedQuiz.php
 
 namespace App\Events;
 
+use App\Models\Quiz;
 use Illuminate\Broadcasting\Channel;
 use Illuminate\Broadcasting\InteractsWithSockets;
-use Illuminate\Broadcasting\PresenceChannel;
-use Illuminate\Broadcasting\PrivateChannel;
 use Illuminate\Contracts\Broadcasting\ShouldBroadcast;
 use Illuminate\Foundation\Events\Dispatchable;
 use Illuminate\Queue\SerializesModels;
-use App\Models\Quiz;
 
-class QuizEnded implements ShouldBroadcast
+class UserJoinedQuiz implements ShouldBroadcast
 {
     use Dispatchable, InteractsWithSockets, SerializesModels;
 
-    /**
-     * Create a new event instance.
-     */
     public $quiz;
+    public $participantName;
 
-    public function __construct(Quiz $quiz)
+    public function __construct(Quiz $quiz, $participantName)
     {
         $this->quiz = $quiz;
+        $this->participantName = $participantName;
     }
 
     public function broadcastOn() :array

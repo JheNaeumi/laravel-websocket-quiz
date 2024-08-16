@@ -11,7 +11,7 @@ use Illuminate\Foundation\Events\Dispatchable;
 use Illuminate\Queue\SerializesModels;
 Use App\Models\Quiz;
 
-class QuizStarted
+class QuizStarted  implements ShouldBroadcast
 {
     use Dispatchable, InteractsWithSockets, SerializesModels;
 
@@ -25,9 +25,11 @@ class QuizStarted
         $this->quiz = $quiz;
     }
 
-    public function broadcastOn()
+    public function broadcastOn() :array
     {
-        return new Channel('quiz.' . $this->quiz->id);
+       return [
+           new Channel("quizzes.{$this->quiz->id}"),
+       ];
     }
     /**
      * Get the channels the event should broadcast on.
