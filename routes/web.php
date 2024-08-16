@@ -26,7 +26,10 @@ Route::middleware('auth')->group(function () {
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 
-    Route::get('/quiz', [QuizController::class, 'index'])->name('quizzes.index');
+    Route::get('/quizzes/create', [QuizController::class, 'create'])->name('quizzes.create');
+    Route::post('/quizzes', [QuizController::class, 'store'])->name('quizzes.store');
+    Route::post('/quizzes/{quiz}/join', [QuizController::class, 'join'])->name('quizzes.join');
+    Route::get('/quizzes', [QuizController::class, 'index'])->name('quizzes.index');
     Route::get('/quizzes/{quiz}', [QuizController::class, 'show'])->name('quizzes.show');
     Route::post('/quizzes/{quiz}/start', [QuizController::class, 'start'])->name('quizzes.start');
     Route::post('/quizzes/{quiz}/next-question/{questionNumber}', [QuizController::class, 'nextQuestion'])->name('quizzes.nextQuestion');
