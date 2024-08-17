@@ -27,6 +27,7 @@ Route::middleware('auth')->group(function () {
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 
     Route::get('/quizzes/create', [QuizController::class, 'create'])->name('quizzes.create');
+    Route::post('/quizzes/{quiz}/answer', [QuizController::class, 'answer'])->name('quizzes.answer');
     Route::post('/quizzes', [QuizController::class, 'store'])->name('quizzes.store');
     Route::post('/quizzes/{quiz}/join', [QuizController::class, 'join'])->name('quizzes.join');
     Route::get('/quizzes', [QuizController::class, 'index'])->name('quizzes.index');
