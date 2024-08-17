@@ -11,6 +11,7 @@ export default function Show({ quiz, auth}) {
     const [quizStatus, setQuizStatus] = useState('waiting');
     const [participants, setParticipants] = useState([]);
     const [participantName, setParticipantName] = useState('');
+    const [participantAnswers, setParticipantAnswers] = useState({});
 
     useEffect(() => {
         // const echo = new Echo({
@@ -28,7 +29,7 @@ export default function Show({ quiz, auth}) {
             setQuizStatus('started');
         });
 
-        channel.listen('QuestionChanged', (e) => {
+        channel.listen('QuizChanged', (e) => {
             setCurrentQuestion(e.questionNumber);
             setTimeLeft(quiz.questions[e.questionNumber].time_limit);
             setSelectedAnswer('');
@@ -42,11 +43,18 @@ export default function Show({ quiz, auth}) {
             setParticipants(prevParticipants => [...prevParticipants, e.participantName]);
         });
 
+        channel.listen('ParticipantAnswered', (e) => {
+            setParticipantAnswers(prevAnswers => ({
+                ...prevAnswers,
+                [e.participantName]: e.answer
+            }));
+        });
         return () => {
             channel.stopListening('QuizStarted');
             channel.stopListening('QuestionChanged');
             channel.stopListening('QuizEnded');
             channel.stopListening('UserJoinedQuiz');
+            channel.stopListening('ParticipantAnswered');
         };
     }, []);
 
@@ -56,8 +64,12 @@ export default function Show({ quiz, auth}) {
         const timer = setInterval(() => {
             setTimeLeft((prevTime) => {
                 if (prevTime === 0) {
+                   
                     handleNextQuestion();
-                    return quiz.questions[currentQuestion + 1]?.time_limit || 0;
+                    return quiz.questions[currentQuestion]?.time_limit || 0;
+                    // if (auth.user.id === quiz.user_id) {
+                    //     handleNextQuestion();
+                    // }
                 }
                 return prevTime - 1;
             });
@@ -68,18 +80,28 @@ export default function Show({ quiz, auth}) {
 
     const handleAnswerSelect = (answer) => {
         setSelectedAnswer(answer);
+        if (auth.user.id !== quiz.user_id) {
+            router.post(route('quizzes.answer', quiz.id), {
+                participant_name: auth.user.name,
+                answer: answer
+            }, {
+                preserveState: true,
+                preserveScroll: true,
+            });
+        }
     };
 
     const handleNextQuestion = () => {
         if (selectedAnswer === quiz.questions[currentQuestion].correct_answer) {
             setScore(score + 1);
         }
-
-        if (currentQuestion + 1 < quiz.questions.length) {
-        router.post(route('quizzes.nextQuestion', { quiz: quiz.id, questionNumber: currentQuestion + 1 }));
+        if (currentQuestion < quiz.questions.length) {
+        router.post(route('quizzes.nextQuestion', { quiz: quiz.id, questionNumber: currentQuestion +1  }));
         } else {
         router.post(route('quizzes.end', quiz.id));
+        //setCurrentQuestion(0);
         }
+        
     };
 
     const submitResult = () => {
@@ -152,12 +174,22 @@ export default function Show({ quiz, auth}) {
                     <button
                         key={index}
                         onClick={() => handleAnswerSelect(option)}
-                        disabled={selectedAnswer !== ''}
+                        disabled={selectedAnswer !== '' || auth.user.id === quiz.user_id}
                     >
                         {option}
                     </button>
                 ))}
-                <button onClick={handleNextQuestion}>Next</button>
+                {auth.user.id === quiz.user_id && (
+                    <div>
+                        <h3>Participant Answers:</h3>
+                        <ul>
+                            {Object.entries(participantAnswers).map(([name, answer]) => (
+                                <li key={name}>{name}: {answer}</li>
+                            ))}
+                        </ul>
+                        <button onClick={handleNextQuestion}>Next Question</button>
+                    </div>
+                )}
             </div>
         </div>
     );
