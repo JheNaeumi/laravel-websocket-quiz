@@ -9,6 +9,7 @@ use App\Events\QuizStarted;
 use App\Events\QuizChanged;
 use App\Events\QuizEnded;
 use App\Events\UserJoinedQuiz;
+use App\Events\ParticipantAnswered;
 
 class QuizController extends Controller
 {
@@ -85,5 +86,17 @@ class QuizController extends Controller
         broadcast(new UserJoinedQuiz($quiz, $request->participant_name))->toOthers();
 
         return response()->json(['message' => 'Joined quiz successfully']);
+    }
+
+    public function answer(Quiz $quiz, Request $request)
+    {
+        $request->validate([
+            'participant_name' => 'required|string',
+            'answer' => 'required|string',
+        ]);
+
+        broadcast(new ParticipantAnswered($quiz, $request->participant_name, $request->answer))->toOthers();
+
+        return response()->json(['message' => 'Answer submitted']);
     }
 }
