@@ -34,7 +34,8 @@ class QuizController extends Controller
     }
 
     public function nextQuestion(Quiz $quiz, $questionNumber)
-    {
+    {   
+        
         broadcast(new QuizChanged($quiz, $questionNumber));
         return response()->json(['message' => 'Question changed']);
     }
@@ -93,10 +94,16 @@ class QuizController extends Controller
         $request->validate([
             'participant_name' => 'required|string',
             'answer' => 'required|string',
+            'question_index' => 'required|integer|min:0',
         ]);
-
-        broadcast(new ParticipantAnswered($quiz, $request->participant_name, $request->answer))->toOthers();
-
+    
+        broadcast(new ParticipantAnswered(
+            $quiz,
+            $request->participant_name,
+            $request->answer,
+            $request->question_index
+        ))->toOthers();
+    
         return response()->json(['message' => 'Answer submitted']);
     }
 }
