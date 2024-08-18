@@ -14,14 +14,6 @@ export default function Show({ quiz, auth}) {
     const [participantAnswers, setParticipantAnswers] = useState({});
 
     useEffect(() => {
-        // const echo = new Echo({
-        //     broadcaster: 'reverb',
-        //     key: process.env.MIX_REVERB_APP_KEY,
-        //     wsHost: process.env.MIX_REVERB_HOST,
-        //     wsPort: process.env.MIX_REVERB_PORT,
-        //     forceTLS: false,
-        //     disableStats: true,
-        // });
 
         const channel = window.Echo.channel(`quizzes.${quiz.id}`);
 
@@ -30,6 +22,7 @@ export default function Show({ quiz, auth}) {
         });
 
         channel.listen('QuizChanged', (e) => {
+            console.log(e.questionNumber)
             setCurrentQuestion(e.questionNumber);
             setTimeLeft(quiz.questions[e.questionNumber].time_limit);
             setSelectedAnswer('');
@@ -44,9 +37,15 @@ export default function Show({ quiz, auth}) {
         });
 
         channel.listen('ParticipantAnswered', (e) => {
+            setSelectedAnswer(e.answer)
             setParticipantAnswers(prevAnswers => ({
+                // ...prevAnswers,
+                //     [e.participantName]: e.answer
                 ...prevAnswers,
-                [e.participantName]: e.answer
+                [e.participant_name]: {
+                    ...prevAnswers[e.participant_name],
+                    [e.question_index]: e.answer
+                }
             }));
         });
         return () => {
@@ -64,12 +63,15 @@ export default function Show({ quiz, auth}) {
         const timer = setInterval(() => {
             setTimeLeft((prevTime) => {
                 if (prevTime === 0) {
-                   
                     handleNextQuestion();
                     return quiz.questions[currentQuestion]?.time_limit || 0;
+                    // // if (auth.user.id === quiz.user_id) {
+                    // //     handleNextQuestion();
+                    // // }
                     // if (auth.user.id === quiz.user_id) {
                     //     handleNextQuestion();
                     // }
+                    // return 0;
                 }
                 return prevTime - 1;
             });
@@ -77,30 +79,59 @@ export default function Show({ quiz, auth}) {
 
         return () => clearInterval(timer);
     }, [currentQuestion, quizStatus]);
-
-    const handleAnswerSelect = (answer) => {
-        setSelectedAnswer(answer);
+    const handleAnswerSelect = (answer, question_index) => {
+     
         if (auth.user.id !== quiz.user_id) {
+            
             router.post(route('quizzes.answer', quiz.id), {
                 participant_name: auth.user.name,
-                answer: answer
+                answer: answer,
+                question_index: question_index
             }, {
                 preserveState: true,
                 preserveScroll: true,
             });
         }
+        
+        
+    
     };
 
     const handleNextQuestion = () => {
-        if (selectedAnswer === quiz.questions[currentQuestion].correct_answer) {
-            setScore(score + 1);
-        }
-        if (currentQuestion < quiz.questions.length) {
-        router.post(route('quizzes.nextQuestion', { quiz: quiz.id, questionNumber: currentQuestion +1  }));
+     
+        setScore(prevScore => {
+            if (selectedAnswer === quiz.questions[currentQuestion].correct_answer) {
+                return prevScore + 1;
+            }
+            return prevScore;
+        });
+        if (currentQuestion < quiz.questions.length - 1 ) {
+            let nextQuestion = currentQuestion;
+            nextQuestion++;
+            console.log(nextQuestion);
+            router.post(route('quizzes.nextQuestion', { quiz: quiz.id, questionNumber: nextQuestion }));
+      
+           
         } else {
-        router.post(route('quizzes.end', quiz.id));
-        //setCurrentQuestion(0);
+            router.post(route('quizzes.end', quiz.id), {
+                selectedAnswer: selectedAnswer,
+                currentQuestion: currentQuestion
+            }, {
+                onSuccess: () => {
+                    setQuizStatus('ended');
+                }
+            });
         }
+        // if (currentQuestion < quiz.questions.length - 1) {
+        //     const nextQuestion = currentQuestion + 1;
+        //     setCurrentQuestion(nextQuestion);
+        //     setTimeLeft(quiz.questions[nextQuestion].time_limit);
+        //     setSelectedAnswer('');
+        //     router.post(route('quizzes.nextQuestion', { quiz: quiz.id, questionNumber: nextQuestion }));
+        // } else {
+        //     router.post(route('quizzes.end', quiz.id));
+        //     setQuizStatus('ended');
+        // }
         
     };
 
@@ -117,6 +148,11 @@ export default function Show({ quiz, auth}) {
             preserveState: true,
             preserveScroll: true,
         });
+    };
+    const calculateScore = (answers) => {
+        return quiz.questions.reduce((score, question, index) => {
+            return score + (answers[index]=== question.correct_answer ? 1 : 0);
+        }, 0);
     };
 
     if (quizStatus === 'waiting') {
@@ -152,41 +188,214 @@ export default function Show({ quiz, auth}) {
         );
     }
 
+    // if (quizStatus === 'ended') {
+    //     return (
+    //         <div>
+    //             <h1>{quiz.title}</h1>
+    //             <h2>Quiz Completed</h2>
+    //             <p>Your score: {score}/{quiz.questions.length}</p>
+    //             <button onClick={submitResult}>Submit Result</button>
+    //         </div>
+    //     );
+    // }
+    // if (quizStatus === 'ended') {
+    //     if (auth.user.id === quiz.user_id) {
+    //         // Host view
+    //         return (
+    //             <div>
+    //                 <h1>{quiz.title} - Results</h1>
+    //                 <h2>Quiz Completed</h2>
+    //                 <h3>Participant Scores:</h3>
+    //                 <ul>
+    //                     {Object.entries(participantAnswers).map(([name, answers]) => (
+    //                         <li key={name}>
+    //                             {name}: {calculateScore(answers)} / {quiz.questions.length}
+    //                         </li>
+    //                     ))}
+    //                 </ul>
+    //                 <h3>Question Breakdown:</h3>
+    //                 {quiz.questions.map((question, index) => (
+    //                     <div key={index}>
+    //                         <h4>Question {index + 1}: {question.question}</h4>
+    //                         <p>Correct Answer: {question.correct_answer}</p>
+    //                         <ul>
+    //                             {Object.entries(participantAnswers).map(([name, answers]) => (
+    //                                 <li key={name}>
+    //                                     {name}: {answers || 'No answer'} 
+    //                                     {answers === question.correct_answer ? ' ✅' : ' ❌'}
+    //                                 </li>
+    //                             ))}
+    //                         </ul>
+    //                     </div>
+    //                 ))}
+    //                 <button onClick={() => router.get(route('quizzes.index'))}>Back to Quizzes</button>
+    //             </div>
+    //         );
+    //     } else {
+    //         // Participant view
+    //         return (
+    //             <div>
+    //                 <h1>{quiz.title} - Your Results - {auth.user.name}</h1>
+    //                 <h2>Quiz Completed</h2>
+    //                 <p>Your score: {calculateScore(participantAnswers[auth.user.name])} / {quiz.questions.length}</p>
+    //                 <h3>Your Answers:</h3>
+    //                 {quiz.questions.map((question, index) => (
+    //                     <div key={index}>
+    //                         <h4>Question {index + 1}: {question.question}</h4>
+    //                         <p>Your Answer: {participantAnswers[auth.user.name]|| 'No answer'}</p>
+    //                         <p>Correct Answer: {question.correct_answer}</p>
+    //                         {participantAnswers[auth.user.name] === question.correct_answer ? 
+    //                             <p style={{color: 'green'}}>Correct! ✅</p> : 
+    //                             <p style={{color: 'red'}}>Incorrect ❌</p>
+    //                         }
+    //                     </div>
+    //                 ))}
+    //                 <button onClick={submitResult}>Submit Result</button>
+    //                 <button onClick={() => router.get(route('quizzes.index'))}>Back to Quizzes</button>
+    //             </div>
+    //         );
+    //     }
+    // }
     if (quizStatus === 'ended') {
-        return (
-            <div>
-                <h1>{quiz.title}</h1>
-                <h2>Quiz Completed</h2>
-                <p>Your score: {score}/{quiz.questions.length}</p>
-                <button onClick={submitResult}>Submit Result</button>
-            </div>
-        );
+        if (auth.user.id === quiz.user_id) {
+            // Host view
+            return (
+                <div>
+                    <h1>{quiz.title} - Results</h1>
+                    <h2>Quiz Completed</h2>
+                    <h3>Participant Scores:</h3>
+                    <ul>
+                        {Object.entries(participantAnswers).map(([name, answers]) => (
+                            <li key={name}>
+                                {name}: {calculateScore(answers)} / {quiz.questions.length}
+                            </li>
+                        ))}
+                    </ul>
+                    <h3>Question Breakdown:</h3>
+                    {quiz.questions.map((question, index) => (
+                        <div key={index}>
+                            <h4>Question {index + 1}: {question.question}</h4>
+                            <p>Correct Answer: {question.correct_answer}</p>
+                            <ul>
+                                {Object.entries(participantAnswers).map(([name, answers]) => (
+                                    <li key={name}>
+                                        {name}: {answers[index] || 'No answer'} 
+                                        {answers[index] === question.correct_answer ? ' ✅' : ' ❌'}
+                                    </li>
+                                ))}
+                            </ul>
+                        </div>
+                    ))}
+                    <button onClick={() => router.get(route('quizzes.index'))}>Back to Quizzes</button>
+                </div>
+            );
+        } else {
+            // Participant view
+            return (
+                <div>
+                    <h1>{quiz.title} - Your Results</h1>
+                    <h2>Quiz Completed</h2>
+                    <p>Your score: {calculateScore(participantAnswers[auth.user.name])} / {quiz.questions.length}</p>
+                    <h3>Your Answers:</h3>
+                    {quiz.questions.map((question, index) => (
+                        <div key={index}>
+                            <h4>Question {index + 1}: {question.question}</h4>
+                            <p>Your Answer: {participantAnswers[auth.user.name][index] || 'No answer'}</p>
+                            <p>Correct Answer: {question.correct_answer}</p>
+                            {participantAnswers[auth.user.name][index] === question.correct_answer ? 
+                                <p style={{color: 'green'}}>Correct! ✅</p> : 
+                                <p style={{color: 'red'}}>Incorrect ❌</p>
+                            }
+                        </div>
+                    ))}
+                    <button onClick={submitResult}>Submit Result</button>
+                    <button onClick={() => router.get(route('quizzes.index'))}>Back to Quizzes</button>
+                </div>
+            );
+        }
     }
 
+    // return (
+    //     <div>
+    //         <h1>{quiz.title}</h1>
+    //         <div>
+    //             <h2>Question {currentQuestion}</h2>
+    //             <p>{quiz.questions[currentQuestion].question}</p>
+    //             <p>Time left: {timeLeft} seconds</p>
+    //             {quiz.questions[currentQuestion].options.map((option, index) => (
+    //                 <button
+    //                     key={index}
+    //                     onClick={()=> handleAnswerSelect(option, currentQuestion) }
+    //                     disabled={auth.user.id === quiz.user_id }
+    //                 >
+    //                     {option}
+    //                 </button>
+    //             ))}
+    //             {auth.user.id === quiz.user_id && (
+    //                 <div>
+    //                     <h3>Participant Answers:</h3>
+    //                     <ul>
+    //                         {Object.entries(participantAnswers).map(([name, answer]) => (
+    //                             <li key={name}>{name}: {answer}</li>
+    //                         ))}
+    //                     </ul>
+    //                     <button onClick={handleNextQuestion}>Next Question</button>
+    //                 </div>
+    //             )}
+    //         </div>
+    //     </div>
+    // );
     return (
         <div>
             <h1>{quiz.title}</h1>
             <div>
-                <h2>Question {currentQuestion + 1}</h2>
+                <h2>Question {currentQuestion} of {quiz.questions.length}</h2>
                 <p>{quiz.questions[currentQuestion].question}</p>
                 <p>Time left: {timeLeft} seconds</p>
-                {quiz.questions[currentQuestion].options.map((option, index) => (
-                    <button
-                        key={index}
-                        onClick={() => handleAnswerSelect(option)}
-                        disabled={selectedAnswer !== '' || auth.user.id === quiz.user_id}
-                    >
-                        {option}
-                    </button>
-                ))}
+                
+                {auth.user.id !== quiz.user_id && (
+                    <div>
+                        {quiz.questions[currentQuestion].options.map((option, index) => (
+                            <button
+                                key={index}
+                                onClick={() => handleAnswerSelect(option, currentQuestion)}
+                                disabled={selectedAnswer !== ''}
+                            >
+                                {option}
+                            </button>
+                        ))}
+                        {selectedAnswer && <p>Your answer: {selectedAnswer}</p>}
+                    </div>
+                )}
+    
                 {auth.user.id === quiz.user_id && (
                     <div>
                         <h3>Participant Answers:</h3>
-                        <ul>
-                            {Object.entries(participantAnswers).map(([name, answer]) => (
-                                <li key={name}>{name}: {answer}</li>
-                            ))}
-                        </ul>
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Participant</th>
+                                    <th>Answer</th>
+                                    <th>Status</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {Object.entries(participantAnswers).map(([name, answers]) => (
+                                    <tr key={name}>
+                                        <td>{name}</td>
+                                        <td>{answers[currentQuestion] || 'No answer yet'}</td>
+                                        <td>
+                                            {answers[currentQuestion] 
+                                                ? (answers[currentQuestion] === quiz.questions[currentQuestion].correct_answer 
+                                                    ? '✅ Correct' 
+                                                    : '❌ Incorrect')
+                                                : '⏳ Waiting'
+                                            }
+                                        </td>
+                                    </tr>
+                                ))}
+                            </tbody>
+                        </table>
                         <button onClick={handleNextQuestion}>Next Question</button>
                     </div>
                 )}
