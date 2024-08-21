@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from 'react';
-
 import { router } from '@inertiajs/react';
 
 export default function Show({ quiz, auth}) {
@@ -12,7 +11,7 @@ export default function Show({ quiz, auth}) {
     const [participants, setParticipants] = useState([]);
     const [participantName, setParticipantName] = useState('');
     const [participantAnswers, setParticipantAnswers] = useState({});
-
+    //Websocket/Channel
     useEffect(() => {
 
         const channel = window.Echo.channel(`quizzes.${quiz.id}`);
@@ -39,8 +38,6 @@ export default function Show({ quiz, auth}) {
         channel.listen('ParticipantAnswered', (e) => {
             setSelectedAnswer(e.answer)
             setParticipantAnswers(prevAnswers => ({
-                // ...prevAnswers,
-                //     [e.participantName]: e.answer
                 ...prevAnswers,
                 [e.participant_name]: {
                     ...prevAnswers[e.participant_name],
@@ -56,7 +53,7 @@ export default function Show({ quiz, auth}) {
             channel.stopListening('ParticipantAnswered');
         };
     }, []);
-
+    //Question Timer
     useEffect(() => {
         if (quizStatus !== 'started') return;
 
@@ -65,13 +62,7 @@ export default function Show({ quiz, auth}) {
                 if (prevTime === 0) {
                     handleNextQuestion();
                     return quiz.questions[currentQuestion]?.time_limit || 0;
-                    // // if (auth.user.id === quiz.user_id) {
-                    // //     handleNextQuestion();
-                    // // }
-                    // if (auth.user.id === quiz.user_id) {
-                    //     handleNextQuestion();
-                    // }
-                    // return 0;
+             
                 }
                 return prevTime - 1;
             });
@@ -79,6 +70,7 @@ export default function Show({ quiz, auth}) {
 
         return () => clearInterval(timer);
     }, [currentQuestion, quizStatus]);
+
     const handleAnswerSelect = (answer, question_index) => {
      
         if (auth.user.id !== quiz.user_id) {
@@ -122,16 +114,6 @@ export default function Show({ quiz, auth}) {
                 }
             });
         }
-        // if (currentQuestion < quiz.questions.length - 1) {
-        //     const nextQuestion = currentQuestion + 1;
-        //     setCurrentQuestion(nextQuestion);
-        //     setTimeLeft(quiz.questions[nextQuestion].time_limit);
-        //     setSelectedAnswer('');
-        //     router.post(route('quizzes.nextQuestion', { quiz: quiz.id, questionNumber: nextQuestion }));
-        // } else {
-        //     router.post(route('quizzes.end', quiz.id));
-        //     setQuizStatus('ended');
-        // }
         
     };
 
@@ -187,75 +169,8 @@ export default function Show({ quiz, auth}) {
             </div>
         );
     }
-
-    // if (quizStatus === 'ended') {
-    //     return (
-    //         <div>
-    //             <h1>{quiz.title}</h1>
-    //             <h2>Quiz Completed</h2>
-    //             <p>Your score: {score}/{quiz.questions.length}</p>
-    //             <button onClick={submitResult}>Submit Result</button>
-    //         </div>
-    //     );
-    // }
-    // if (quizStatus === 'ended') {
-    //     if (auth.user.id === quiz.user_id) {
-    //         // Host view
-    //         return (
-    //             <div>
-    //                 <h1>{quiz.title} - Results</h1>
-    //                 <h2>Quiz Completed</h2>
-    //                 <h3>Participant Scores:</h3>
-    //                 <ul>
-    //                     {Object.entries(participantAnswers).map(([name, answers]) => (
-    //                         <li key={name}>
-    //                             {name}: {calculateScore(answers)} / {quiz.questions.length}
-    //                         </li>
-    //                     ))}
-    //                 </ul>
-    //                 <h3>Question Breakdown:</h3>
-    //                 {quiz.questions.map((question, index) => (
-    //                     <div key={index}>
-    //                         <h4>Question {index + 1}: {question.question}</h4>
-    //                         <p>Correct Answer: {question.correct_answer}</p>
-    //                         <ul>
-    //                             {Object.entries(participantAnswers).map(([name, answers]) => (
-    //                                 <li key={name}>
-    //                                     {name}: {answers || 'No answer'} 
-    //                                     {answers === question.correct_answer ? ' ✅' : ' ❌'}
-    //                                 </li>
-    //                             ))}
-    //                         </ul>
-    //                     </div>
-    //                 ))}
-    //                 <button onClick={() => router.get(route('quizzes.index'))}>Back to Quizzes</button>
-    //             </div>
-    //         );
-    //     } else {
-    //         // Participant view
-    //         return (
-    //             <div>
-    //                 <h1>{quiz.title} - Your Results - {auth.user.name}</h1>
-    //                 <h2>Quiz Completed</h2>
-    //                 <p>Your score: {calculateScore(participantAnswers[auth.user.name])} / {quiz.questions.length}</p>
-    //                 <h3>Your Answers:</h3>
-    //                 {quiz.questions.map((question, index) => (
-    //                     <div key={index}>
-    //                         <h4>Question {index + 1}: {question.question}</h4>
-    //                         <p>Your Answer: {participantAnswers[auth.user.name]|| 'No answer'}</p>
-    //                         <p>Correct Answer: {question.correct_answer}</p>
-    //                         {participantAnswers[auth.user.name] === question.correct_answer ? 
-    //                             <p style={{color: 'green'}}>Correct! ✅</p> : 
-    //                             <p style={{color: 'red'}}>Incorrect ❌</p>
-    //                         }
-    //                     </div>
-    //                 ))}
-    //                 <button onClick={submitResult}>Submit Result</button>
-    //                 <button onClick={() => router.get(route('quizzes.index'))}>Back to Quizzes</button>
-    //             </div>
-    //         );
-    //     }
-    // }
+   
+    // update frontend
     if (quizStatus === 'ended') {
         if (auth.user.id === quiz.user_id) {
             // Host view
@@ -315,36 +230,7 @@ export default function Show({ quiz, auth}) {
         }
     }
 
-    // return (
-    //     <div>
-    //         <h1>{quiz.title}</h1>
-    //         <div>
-    //             <h2>Question {currentQuestion}</h2>
-    //             <p>{quiz.questions[currentQuestion].question}</p>
-    //             <p>Time left: {timeLeft} seconds</p>
-    //             {quiz.questions[currentQuestion].options.map((option, index) => (
-    //                 <button
-    //                     key={index}
-    //                     onClick={()=> handleAnswerSelect(option, currentQuestion) }
-    //                     disabled={auth.user.id === quiz.user_id }
-    //                 >
-    //                     {option}
-    //                 </button>
-    //             ))}
-    //             {auth.user.id === quiz.user_id && (
-    //                 <div>
-    //                     <h3>Participant Answers:</h3>
-    //                     <ul>
-    //                         {Object.entries(participantAnswers).map(([name, answer]) => (
-    //                             <li key={name}>{name}: {answer}</li>
-    //                         ))}
-    //                     </ul>
-    //                     <button onClick={handleNextQuestion}>Next Question</button>
-    //                 </div>
-    //             )}
-    //         </div>
-    //     </div>
-    // );
+ 
     return (
         <div>
             <h1>{quiz.title}</h1>
