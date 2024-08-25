@@ -20,7 +20,7 @@ export default function Index({ auth, quizzes }) {
                             </div>
                             <ul className='mt-4'>
                                 {quizzes.map((quiz) => (
-                                    <li className='"border rounded-lg py-3 mb-4 px-2 bg-slate-100' key={quiz.id}>
+                                    <li className='border rounded-lg py-3 mb-4 px-2 bg-slate-100' key={quiz.id}>
                                         <Link href={route('quizzes.show', quiz.id)}>{quiz.title}</Link>
                                     </li>
                                 ))}
