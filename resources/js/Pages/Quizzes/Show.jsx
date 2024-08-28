@@ -137,63 +137,169 @@ export default function Show({ quiz, auth}) {
         }, 0);
     };
 
+    // if (quizStatus === 'waiting') {
+    //     return (
+    //         <div>
+    //             <h1>{quiz.title}</h1>
+    //             <h1>Hosts id:{quiz.user_id}</h1>
+    //             <h1>Your id:{auth.user.id}</h1>
+
+    //             {auth.user.id === quiz.user_id ? (
+    //                 <div>
+    //                     <p>Waiting for participants to join...</p>
+    //                     <button onClick={() =>router.post(route('quizzes.start', quiz.id))}>Start Quiz</button>
+    //                 </div>
+    //             ) : (
+    //                 <div>
+    //                     <input
+    //                         type="text"
+    //                         value={participantName}
+    //                         onChange={(e) => setParticipantName(e.target.value)}
+    //                         placeholder="Enter your name"
+    //                     />
+    //                     <button onClick={handleJoin}>Join Quiz</button>
+    //                 </div>
+    //             )}
+    //             <h2>Participants:</h2>
+    //             <ul>
+    //                 {participants.map((name, index) => (
+    //                     <li key={index}>{name}</li>
+    //                 ))}
+    //             </ul>
+    //         </div>
+    //     );
+    // }
     if (quizStatus === 'waiting') {
         return (
-            <div>
-                <h1>{quiz.title}</h1>
-                <h1>Hosts id:{quiz.user_id}</h1>
-                <h1>Your id:{auth.user.id}</h1>
-
+            <div className="max-w-4xl mx-auto p-6 bg-white shadow-md rounded-lg">
+                <h1 className="text-3xl font-bold text-gray-800">{quiz.title}</h1>
+                <h1 className="text-lg font-medium text-gray-600 mt-2">Host's ID: {quiz.user_id}</h1>
+                <h1 className="text-lg font-medium text-gray-600 mt-2">Your ID: {auth.user.id}</h1>
+    
                 {auth.user.id === quiz.user_id ? (
-                    <div>
-                        <p>Waiting for participants to join...</p>
-                        <button onClick={() =>router.post(route('quizzes.start', quiz.id))}>Start Quiz</button>
+                    <div className="mt-4">
+                        <p className="text-gray-700">Waiting for participants to join...</p>
+                        <button 
+                            className="mt-4 px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 transition-all"
+                            onClick={() => router.post(route('quizzes.start', quiz.id))}
+                        >
+                            Start Quiz
+                        </button>
                     </div>
                 ) : (
-                    <div>
+                    <div className="mt-4">
                         <input
                             type="text"
                             value={participantName}
                             onChange={(e) => setParticipantName(e.target.value)}
                             placeholder="Enter your name"
+                            className="w-full px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                         />
-                        <button onClick={handleJoin}>Join Quiz</button>
+                        <button 
+                            className="mt-4 px-4 py-2 bg-green-500 text-white rounded-md hover:bg-green-600 transition-all"
+                            onClick={handleJoin}
+                        >
+                            Join Quiz
+                        </button>
                     </div>
                 )}
-                <h2>Participants:</h2>
-                <ul>
+                <h2 className="text-xl font-semibold text-gray-700 mt-6">Participants:</h2>
+                <ul className="mt-4 space-y-2">
                     {participants.map((name, index) => (
-                        <li key={index}>{name}</li>
+                        <li key={index} className="text-gray-700 p-2 bg-gray-100 rounded-md shadow-sm">
+                            {name}
+                        </li>
                     ))}
                 </ul>
             </div>
         );
     }
+    
    
     // update frontend
+    // if (quizStatus === 'ended') {
+    //     if (auth.user.id === quiz.user_id) {
+    //         // Host view
+    //         return (
+    //             <div>
+    //                 <h1>{quiz.title} - Results</h1>
+    //                 <h2>Quiz Completed</h2>
+    //                 <h3>Participant Scores:</h3>
+    //                 <ul>
+    //                     {Object.entries(participantAnswers).map(([name, answers]) => (
+    //                         <li key={name}>
+    //                             {name}: {calculateScore(answers)} / {quiz.questions.length}
+    //                         </li>
+    //                     ))}
+    //                 </ul>
+    //                 <h3>Question Breakdown:</h3>
+    //                 {quiz.questions.map((question, index) => (
+    //                     <div key={index}>
+    //                         <h4>Question {index + 1}: {question.question}</h4>
+    //                         <p>Correct Answer: {question.correct_answer}</p>
+    //                         <ul>
+    //                             {Object.entries(participantAnswers).map(([name, answers]) => (
+    //                                 <li key={name}>
+    //                                     {name}: {answers[index] || 'No answer'} 
+    //                                     {answers[index] === question.correct_answer ? ' ✅' : ' ❌'}
+    //                                 </li>
+    //                             ))}
+    //                         </ul>
+    //                     </div>
+    //                 ))}
+    //                 <button onClick={() => router.get(route('quizzes.index'))}>Back to Quizzes</button>
+    //             </div>
+    //         );
+    //     } else {
+    //         // Participant view
+    //         return (
+    //             <div>
+    //                 <h1>{quiz.title} - Your Results</h1>
+    //                 <h2>Quiz Completed</h2>
+    //                 <p>Your score: {calculateScore(participantAnswers[auth.user.name])} / {quiz.questions.length}</p>
+    //                 <h3>Your Answers:</h3>
+    //                 {quiz.questions.map((question, index) => (
+    //                     <div key={index}>
+    //                         <h4>Question {index + 1}: {question.question}</h4>
+    //                         <p>Your Answer: {participantAnswers[auth.user.name][index] || 'No answer'}</p>
+    //                         <p>Correct Answer: {question.correct_answer}</p>
+    //                         {participantAnswers[auth.user.name][index] === question.correct_answer ? 
+    //                             <p style={{color: 'green'}}>Correct! ✅</p> : 
+    //                             <p style={{color: 'red'}}>Incorrect ❌</p>
+    //                         }
+    //                     </div>
+    //                 ))}
+    //                 <button onClick={submitResult}>Submit Result</button>
+    //                 <button onClick={() => router.get(route('quizzes.index'))}>Back to Quizzes</button>
+    //             </div>
+    //         );
+    //     }
+    // }
     if (quizStatus === 'ended') {
         if (auth.user.id === quiz.user_id) {
             // Host view
             return (
-                <div>
-                    <h1>{quiz.title} - Results</h1>
-                    <h2>Quiz Completed</h2>
-                    <h3>Participant Scores:</h3>
-                    <ul>
+                <div className="max-w-4xl mx-auto p-6 bg-white shadow-md rounded-lg">
+                    <h1 className="text-3xl font-bold text-gray-800">{quiz.title} - Results</h1>
+                    <h2 className="text-xl font-semibold text-gray-700 mt-4">Quiz Completed</h2>
+                    <h3 className="text-lg font-medium text-gray-600 mt-4">Participant Scores:</h3>
+                    <ul className="mt-4 space-y-2">
                         {Object.entries(participantAnswers).map(([name, answers]) => (
-                            <li key={name}>
+                            <li key={name} className="p-2 bg-gray-100 rounded-md shadow-sm">
                                 {name}: {calculateScore(answers)} / {quiz.questions.length}
                             </li>
                         ))}
                     </ul>
-                    <h3>Question Breakdown:</h3>
+                    <h3 className="text-lg font-medium text-gray-600 mt-6">Question Breakdown:</h3>
                     {quiz.questions.map((question, index) => (
-                        <div key={index}>
-                            <h4>Question {index + 1}: {question.question}</h4>
-                            <p>Correct Answer: {question.correct_answer}</p>
-                            <ul>
+                        <div key={index} className="mt-4 p-4 bg-gray-50 rounded-md shadow">
+                            <h4 className="text-md font-semibold text-gray-800">
+                                Question {index + 1}: {question.question}
+                            </h4>
+                            <p className="text-gray-600 mt-1">Correct Answer: {question.correct_answer}</p>
+                            <ul className="mt-2 space-y-2">
                                 {Object.entries(participantAnswers).map(([name, answers]) => (
-                                    <li key={name}>
+                                    <li key={name} className="text-gray-700">
                                         {name}: {answers[index] || 'No answer'} 
                                         {answers[index] === question.correct_answer ? ' ✅' : ' ❌'}
                                     </li>
@@ -201,91 +307,189 @@ export default function Show({ quiz, auth}) {
                             </ul>
                         </div>
                     ))}
-                    <button onClick={() => router.get(route('quizzes.index'))}>Back to Quizzes</button>
+                    <button 
+                        className="mt-6 px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 transition-all"
+                        onClick={() => router.get(route('quizzes.index'))}
+                    >
+                        Back to Quizzes
+                    </button>
                 </div>
             );
-        } else {
-            // Participant view
-            return (
-                <div>
-                    <h1>{quiz.title} - Your Results</h1>
-                    <h2>Quiz Completed</h2>
-                    <p>Your score: {calculateScore(participantAnswers[auth.user.name])} / {quiz.questions.length}</p>
-                    <h3>Your Answers:</h3>
-                    {quiz.questions.map((question, index) => (
-                        <div key={index}>
-                            <h4>Question {index + 1}: {question.question}</h4>
-                            <p>Your Answer: {participantAnswers[auth.user.name][index] || 'No answer'}</p>
-                            <p>Correct Answer: {question.correct_answer}</p>
-                            {participantAnswers[auth.user.name][index] === question.correct_answer ? 
-                                <p style={{color: 'green'}}>Correct! ✅</p> : 
-                                <p style={{color: 'red'}}>Incorrect ❌</p>
-                            }
+            } else { 
+                // Participant view
+                return (
+                    <div className="max-w-4xl mx-auto p-6 bg-white shadow-md rounded-lg">
+                        <h1 className="text-3xl font-bold text-gray-800">{quiz.title} - Your Results</h1>
+                        <h2 className="text-xl font-semibold text-gray-700 mt-4">Quiz Completed</h2>
+                        <p className="mt-4 text-lg text-gray-600">
+                            Your score: {calculateScore(participantAnswers[auth.user.name])} / {quiz.questions.length}
+                        </p>
+                        <h3 className="text-lg font-medium text-gray-600 mt-6">Your Answers:</h3>
+                        {quiz.questions.map((question, index) => (
+                            <div key={index} className="mt-4 p-4 bg-gray-50 rounded-md shadow">
+                                <h4 className="text-md font-semibold text-gray-800">
+                                    Question {index + 1}: {question.question}
+                                </h4>
+                                <p className="text-gray-600 mt-1">Your Answer: {participantAnswers[auth.user.name][index] || 'No answer'}</p>
+                                <p className="text-gray-600">Correct Answer: {question.correct_answer}</p>
+                                {participantAnswers[auth.user.name][index] === question.correct_answer ? 
+                                    <p className="text-green-500 font-semibold">Correct! ✅</p> : 
+                                    <p className="text-red-500 font-semibold">Incorrect ❌</p>
+                                }
+                            </div>
+                        ))}
+                        <div className="flex space-x-4 mt-6">
+                            <button 
+                                className="px-4 py-2 bg-green-500 text-white rounded-md hover:bg-green-600 transition-all"
+                                onClick={submitResult}
+                            >
+                                Submit Result
+                            </button>
+                            <button 
+                                className="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 transition-all"
+                                onClick={() => router.get(route('quizzes.index'))}
+                            >
+                                Back to Quizzes
+                            </button>
                         </div>
-                    ))}
-                    <button onClick={submitResult}>Submit Result</button>
-                    <button onClick={() => router.get(route('quizzes.index'))}>Back to Quizzes</button>
-                </div>
-            );
+                    </div>
+                );
         }
     }
 
+    
+
  
+    // return (
+    //     <div>
+    //         <h1>{quiz.title}</h1>
+    //         <div>
+    //             <h2>Question {currentQuestion} of {quiz.questions.length}</h2>
+    //             <p>{quiz.questions[currentQuestion].question}</p>
+    //             <p>Time left: {timeLeft} seconds</p>
+                
+    //             {auth.user.id !== quiz.user_id && (
+    //                 <div>
+    //                     {quiz.questions[currentQuestion].options.map((option, index) => (
+    //                         <button
+    //                             key={index}
+    //                             onClick={() => handleAnswerSelect(option, currentQuestion)}
+    //                             disabled={selectedAnswer !== ''}
+    //                         >
+    //                             {option}
+    //                         </button>
+    //                     ))}
+    //                     {selectedAnswer && <p>Your answer: {selectedAnswer}</p>}
+    //                 </div>
+    //             )}
+    
+    //             {auth.user.id === quiz.user_id && (
+    //                 <div>
+    //                     <h3>Participant Answers:</h3>
+    //                     <table>
+    //                         <thead>
+    //                             <tr>
+    //                                 <th>Participant</th>
+    //                                 <th>Answer</th>
+    //                                 <th>Status</th>
+    //                             </tr>
+    //                         </thead>
+    //                         <tbody>
+    //                             {Object.entries(participantAnswers).map(([name, answers]) => (
+    //                                 <tr key={name}>
+    //                                     <td>{name}</td>
+    //                                     <td>{answers[currentQuestion] || 'No answer yet'}</td>
+    //                                     <td>
+    //                                         {answers[currentQuestion] 
+    //                                             ? (answers[currentQuestion] === quiz.questions[currentQuestion].correct_answer 
+    //                                                 ? '✅ Correct' 
+    //                                                 : '❌ Incorrect')
+    //                                             : '⏳ Waiting'
+    //                                         }
+    //                                     </td>
+    //                                 </tr>
+    //                             ))}
+    //                         </tbody>
+    //                     </table>
+    //                     <button onClick={handleNextQuestion}>Next Question</button>
+    //                 </div>
+    //             )}
+    //         </div>
+    //     </div>
+    // );
     return (
-        <div>
-            <h1>{quiz.title}</h1>
+        <div className="max-w-3xl mx-auto p-6 bg-white shadow-md rounded-lg">
+            <h1 className="text-3xl font-bold text-gray-800 mb-4">{quiz.title}</h1>
             <div>
-                <h2>Question {currentQuestion} of {quiz.questions.length}</h2>
-                <p>{quiz.questions[currentQuestion].question}</p>
-                <p>Time left: {timeLeft} seconds</p>
+                <h2 className="text-2xl font-semibold text-gray-700 mb-2">
+                    Question {currentQuestion + 1} of {quiz.questions.length}
+                </h2>
+                <p className="text-lg text-gray-600 mb-4">{quiz.questions[currentQuestion].question}</p>
+                <p className="text-sm text-gray-500 mb-6">Time left: {timeLeft} seconds</p>
                 
                 {auth.user.id !== quiz.user_id && (
-                    <div>
+                    <div className="space-y-4">
                         {quiz.questions[currentQuestion].options.map((option, index) => (
                             <button
                                 key={index}
                                 onClick={() => handleAnswerSelect(option, currentQuestion)}
                                 disabled={selectedAnswer !== ''}
+                                className={`w-full py-2 px-4 rounded-md text-white font-medium ${
+                                    selectedAnswer === option
+                                        ? 'bg-green-500'
+                                        : 'bg-blue-500 hover:bg-blue-600'
+                                } ${selectedAnswer !== '' && selectedAnswer !== option ? 'opacity-50 cursor-not-allowed' : ''}`}
                             >
                                 {option}
                             </button>
                         ))}
-                        {selectedAnswer && <p>Your answer: {selectedAnswer}</p>}
+                        {selectedAnswer && (
+                            <p className="mt-4 text-lg text-gray-700 font-semibold">Your answer: {selectedAnswer}</p>
+                        )}
                     </div>
                 )}
     
                 {auth.user.id === quiz.user_id && (
-                    <div>
-                        <h3>Participant Answers:</h3>
-                        <table>
-                            <thead>
-                                <tr>
-                                    <th>Participant</th>
-                                    <th>Answer</th>
-                                    <th>Status</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {Object.entries(participantAnswers).map(([name, answers]) => (
-                                    <tr key={name}>
-                                        <td>{name}</td>
-                                        <td>{answers[currentQuestion] || 'No answer yet'}</td>
-                                        <td>
-                                            {answers[currentQuestion] 
-                                                ? (answers[currentQuestion] === quiz.questions[currentQuestion].correct_answer 
-                                                    ? '✅ Correct' 
-                                                    : '❌ Incorrect')
-                                                : '⏳ Waiting'
-                                            }
-                                        </td>
+                    <div className="mt-6">
+                        <h3 className="text-lg font-medium text-gray-700">Participant Answers:</h3>
+                        <div className="overflow-x-auto mt-4">
+                            <table className="min-w-full bg-white border border-gray-200">
+                                <thead>
+                                    <tr className="bg-gray-100">
+                                        <th className="py-2 px-4 border-b">Participant</th>
+                                        <th className="py-2 px-4 border-b">Answer</th>
+                                        <th className="py-2 px-4 border-b">Status</th>
                                     </tr>
-                                ))}
-                            </tbody>
-                        </table>
-                        <button onClick={handleNextQuestion}>Next Question</button>
+                                </thead>
+                                <tbody>
+                                    {Object.entries(participantAnswers).map(([name, answers]) => (
+                                        <tr key={name}>
+                                            <td className="py-2 px-4 border-b text-gray-700">{name}</td>
+                                            <td className="py-2 px-4 border-b text-gray-700">
+                                                {answers[currentQuestion] || 'No answer yet'}
+                                            </td>
+                                            <td className="py-2 px-4 border-b text-gray-700">
+                                                {answers[currentQuestion] 
+                                                    ? (answers[currentQuestion] === quiz.questions[currentQuestion].correct_answer 
+                                                        ? '✅ Correct' 
+                                                        : '❌ Incorrect')
+                                                    : '⏳ Waiting'}
+                                            </td>
+                                        </tr>
+                                    ))}
+                                </tbody>
+                            </table>
+                        </div>
+                        <button 
+                            className="mt-6 px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 transition-all"
+                            onClick={handleNextQuestion}
+                        >
+                            Next Question
+                        </button>
                     </div>
                 )}
             </div>
         </div>
     );
+    
 }
